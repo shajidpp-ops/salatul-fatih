@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1d6b4f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>സ്വലാത്തുൽ ഫാതിഹ് കൗണ്ടർ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Sans+Malayalam:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f3ea; --card:#ffffff; --ink:#1f2a24; --muted:#5f6b64; --line:#e3ddcc;
+  --green:#1d6b4f; --green-d:#134c38; --gold:#b8892b; --soft:#e8f2ed; --danger:#a63d32;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#121a16; --card:#1b2621; --ink:#eaf1ec; --muted:#a3b2a9; --line:#2d3b34; --green:#3fae85; --green-d:#2f8a69; --gold:#d9aa4c; --soft:#22342c; --danger:#e07a6e;}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Noto Sans Malayalam",system-ui,sans-serif;line-height:1.6}
+.wrap{max-width:560px;margin:0 auto;padding:16px 14px 40px}
+header{text-align:center;padding:10px 0 6px}
+.ar{font-family:"Amiri",serif;direction:rtl}
+header .ar{font-size:30px;color:var(--green);margin:0}
+header h1{font-size:19px;margin:2px 0 0;font-weight:700}
+header p{margin:2px 0 0;color:var(--muted);font-size:13px}
+nav{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:5px;margin:14px 0}
+nav button{flex:1;border:0;background:transparent;color:var(--muted);padding:9px 4px;border-radius:10px;font:inherit;font-size:13.5px;font-weight:500;cursor:pointer}
+nav button[aria-selected="true"]{background:var(--green);color:#fff}
+section{display:none}
+section.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 14px;font:inherit;font-size:13.5px;cursor:pointer}
+.chip.on{background:var(--soft);border-color:var(--green);color:var(--green);font-weight:700}
+.chip.add{border-style:dashed;color:var(--green)}
+.dname{text-align:center;font-weight:700;font-size:17px;margin:0}
+.dar{text-align:center;font-size:clamp(18px,5.2vw,25px);color:var(--green);margin:6px 0 0;line-height:2.1;white-space:pre-line}
+.tap{display:block;margin:14px auto 8px;width:196px;height:196px;border-radius:50%;border:0;cursor:pointer;
+  background:radial-gradient(circle at 35% 30%,var(--green),var(--green-d));color:#fff;
+  box-shadow:0 8px 22px rgba(19,76,56,.35);touch-action:manipulation;user-select:none;-webkit-user-select:none;
+  transition:transform .06s}
+.tap:active{transform:scale(.96)}
+.tap .n{display:block;font-size:56px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.tap .l{display:block;font-size:13px;opacity:.85}
+.bar{height:8px;background:var(--soft);border-radius:99px;overflow:hidden;margin:6px 0 4px}
+.bar i{display:block;height:100%;background:var(--gold);width:0;transition:width .2s}
+.tline{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.tl{border:0;background:var(--soft);color:var(--green);font:inherit;font-size:13px;padding:4px 12px;border-radius:99px;cursor:pointer}
+.done{color:var(--green);font-weight:700;text-align:center;font-size:14px;margin:6px 0 0;min-height:21px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.stat{background:var(--soft);border-radius:12px;padding:10px 6px;text-align:center}
+.stat b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn{flex:1 1 auto;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 10px;border-radius:10px;font:inherit;font-size:13px;cursor:pointer}
+.btn.pri{background:var(--green);border-color:var(--green);color:#fff}
+.btn.dng{color:var(--danger)}
+h2{font-size:16px;margin:0 0 10px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:7px 4px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:500}
+td{font-variant-numeric:tabular-nums}
+.salat .ar{font-size:27px;line-height:2.2;text-align:center;color:var(--ink)}
+.translit{font-style:italic;color:var(--muted);font-size:14px;line-height:1.7}
+.lbl{font-size:12px;color:var(--gold);font-weight:700;letter-spacing:.3px;margin:14px 0 2px}
+.virtues ol{margin:0;padding-left:0;list-style:none;counter-reset:v}
+.virtues li{counter-increment:v;position:relative;padding:10px 4px 10px 38px;border-bottom:1px solid var(--line);font-size:14.5px}
+.virtues li:last-child{border-bottom:0}
+.virtues li::before{content:counter(v);position:absolute;left:0;top:10px;width:27px;height:27px;border-radius:50%;background:var(--soft);color:var(--green);font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.note{font-size:12px;color:var(--muted);text-align:center;margin-top:6px}
+footer{text-align:center;color:var(--muted);font-size:13px;margin-top:22px}
+footer b{color:var(--green)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+.modal.on{display:flex}
+.box{background:var(--card);border-radius:16px;padding:18px;width:100%;max-width:400px;max-height:90vh;overflow:auto}
+.box h3{margin:0 0 10px;font-size:16px}
+.box label{display:block;font-size:13px;color:var(--muted);margin:10px 0 3px}
+.box input{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit;background:var(--bg);color:var(--ink)}
+.box .presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.box .presets .chip{font-size:12.5px;padding:5px 10px}
+.empty{text-align:center;color:var(--muted);padding:20px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="ar">اللَّهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ</p>
+    <h1>സ്വലാത്തുൽ ഫാതിഹ്</h1>
+    <p>ദിക്ർ കൗണ്ടർ · പരസ്യമില്ല · സൈൻ ഇൻ വേണ്ട</p>
+  </header>
+
+  <nav role="tablist">
+    <button role="tab" data-tab="count" aria-selected="true">കൗണ്ടർ</button>
+    <button role="tab" data-tab="text" aria-selected="false">സ്വലാത്തും അർത്ഥവും</button>
+    <button role="tab" data-tab="virtue" aria-selected="false">പുണ്യം, മഹത്വം</button>
+  </nav>
+
+  <!-- COUNTER -->
+  <section id="count" class="on">
+    <div class="chips" id="chips"></div>
+    <div class="card" id="active"></div>
+    <div class="card">
+      <h2 id="sumTitle">സംഗ്രഹം</h2>
+      <table id="sum"></table>
+    </div>
+    <p class="note">കണക്കുകൾ ഈ ഫോണിലെ ബ്രൗസറിൽ മാത്രം സൂക്ഷിക്കുന്നു. ബ്രൗസർ ഡാറ്റ മായ്ച്ചാൽ കണക്കുകളും പോകും.</p>
+  </section>
+
+  <!-- TEXT -->
+  <section id="text">
+    <div class="card salat">
+      <p class="ar">اللَّهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ ❁ الْفَاتِحِ لِمَا أُغْلِقَ ❁ وَالْخَاتِمِ لِمَا سَبَقَ ❁ نَاصِرِ الْحَقِّ بِالْحَقِّ ❁ وَالْهَادِي إِلَى صِرَاطِكَ الْمُسْتَقِيمِ ❁ وَعَلَى آلِهِ حَقَّ قَدْرِهِ وَمِقْدَارِهِ الْعَظِيمِ ❁</p>
+      <div class="lbl">ഉച്ചാരണം</div>
+      <p class="translit">Allāhumma ṣalli ʿalā sayyidinā Muḥammadini, l-fātiḥi limā ughliqa, wa-l-khātimi limā sabaqa, nāṣiri l-ḥaqqi bi-l-ḥaqqi, wa-l-hādī ilā ṣirāṭika l-mustaqīmi, wa-ʿalā ālihi ḥaqqa qadrihi wa-miqdārihi l-ʿaẓīm.</p>
+      <div class="lbl">മലയാളം അർത്ഥം</div>
+      <p>അടക്കപ്പെട്ട കാര്യങ്ങൾ തുറന്നു തരുന്നവരായ, മുൻകഴിഞ്ഞവരുടെയും അവസാനത്തെയും പ്രവാചകരായ, സത്യം കൊണ്ട് സത്യത്തെ സഹായിക്കുന്നവരായ, നേരായ പാതയിലേക്ക് വഴി കാണിക്കുന്നവരായ നമ്മുടെ നേതാവ് മുഹമ്മദ് നബിയിലേക്കും അവിടുത്തെ കുടുംബത്തിലേക്കും അല്ലാഹുവേ, നീ അനുഗ്രഹം ചൊരിയേണമേ.</p>
+      <div class="lbl">English</div>
+      <p style="color:var(--muted);font-size:14px">O Allah, send prayers upon our master Muhammad, the opener of what had been closed, and the seal of what had come before, the defender of the Truth by the Truth, and the guide to Your straight path, and upon his Family, according to the full measure of his rank and his immense stature.</p>
+    </div>
+  </section>
+
+  <!-- VIRTUES -->
+  <section id="virtue">
+    <div class="card virtues">
+      <h2>സ്വലാത്തുൽ ഫാതിഹ് പുണ്യം, മഹത്വം</h2>
+      <ol>
+        <li>മുത്ത് നബിയുടെ മേൽ അല്ലാഹ് ചൊല്ലിയ സ്വലാത്ത്. ഇത് തന്നെയാണ് സ്വലാത്തുൽ ഫാതിഹിന്റെ ഏറ്റവും വലിയ മഹത്വവും.</li>
+        <li>അല്ലാഹുവിനും മുത്ത് നബിക്കും ഏറ്റവും പ്രിയങ്കരമായ സ്വലാത്ത്.</li>
+        <li>മലക്കുകൾ ചൊല്ലുന്ന സ്വലാത്ത്.</li>
+        <li>മുത്ത് നബിയുടെ മേൽ മുഹ്'യിദ്ധീൻ ശൈഖ് (റ), ശാഹ് നഖ്ഷബന്ധി (റ) തുടങ്ങിയ മഹത്തുക്കൾ പതിവാക്കിയിരുന്ന സ്വലാത്തുകളിലൊന്ന്.</li>
+        <li>ഒറ്റ തവണ ചൊല്ലിയാൽ മറ്റ് സ്വലാത്തുകൾ 600000 തവണ ചൊല്ലിയാൽ ലഭിക്കുന്ന പ്രതിഫലം ലഭിക്കുന്ന സ്വലാത്ത്.</li>
+        <li>ഏറ്റവും മഹത്തായ സ്വലാത്ത് തനിക്ക് അറിയിച്ച് തരണമെന്നുള്ള ശൈഖ് മുഹമ്മദുൽ ബക്'രി (റ) തങ്ങളുടെ പ്രാർത്ഥനക്ക് ഉത്തരമായ് അല്ലാഹു അറിയിച്ച് കൊടുത്ത സ്വലാത്ത്.</li>
+        <li>ഇതിനേക്കാൾ മഹത്തരമായ മറ്റൊരു സ്വലാത്ത് കൊണ്ടും ഒരാളും എന്റെ മേൽ സ്വലാത്ത് ചൊല്ലിയിട്ടില്ല എന്ന് മുത്ത് നബി, അഹ്'മദ് തിജാനി തങ്ങളോട് പറഞ്ഞ സ്വലാത്ത്.</li>
+        <li>മുത്ത് നബിയെ സ്വപ്നത്തിൽ കാണാൻ ഏറ്റവും ഉത്തമമായ സ്വലാത്ത്.</li>
+        <li>മുത്ത് നബിയെ ഉണർവിൽ തന്നെ കാണുന്നതിന് സഹായിക്കുന്ന സ്വലാത്ത്.</li>
+        <li>ഇരു ലോകത്തേയും ഹാജത്തുകൾ നിറവേറാൻ സഹായകരമാകുന്ന സ്വലാത്ത്.</li>
+        <li>മുത്ത് നബിയോട് പ്രണയമുണ്ടാകുവാൻ ഏറ്റവും സഹായകരമായ സ്വലാത്ത്.</li>
+        <li>വിലായത്തിലേക്കുള്ള വാതിലാണ് സ്വലാത്തുൽ ഫാതിഹ്.</li>
+        <li>മരണപ്പെട്ടവർക്ക് ഹദ്'യ ചെയ്യാൻ ഏറ്റവും ഉത്തമമായ സ്വലാത്ത്.</li>
+        <li>സൂഫികളിലൊരാൾ പറയുകയുണ്ടായി: "എന്റെ മരണശേഷം ആരെങ്കിലും എനിക്ക് ഒരു സ്വലാത്തുൽ ഫാതിഹ് ചൊല്ലി ഹദ്'യ ചെയ്താൽ എനിക്ക് അത് മതിയാകും."</li>
+        <li>വല്ല ഒരുത്തരും സ്വലാത്തുൽ ഫാതിഹ് ദിനേന ഒരു തവണ എങ്കിലും ചൊല്ലിയാൽ അവർ ഈമാൻ കിട്ടിയല്ലാതെ മരണപ്പെടില്ല.</li>
+        <li>ദിനേന ഒരു തവണ എങ്കിലും പതിവാക്കിയവർ നരകത്തിൽ പ്രവേശിക്കില്ല.</li>
+        <li>ഖുർആന്റെ ഖുർആൻ എന്ന് ശൈഖ് ഇബ്റാഹീം നിയാസെ (റ) വിശേഷിപ്പിച്ച സ്വലാത്ത്.</li>
+        <li>മറ്റ് സ്വലാത്തുകൾ 600000 തവണ ചൊല്ലുമ്പോൾ മുത്ത് നബിയോട് ലഭിക്കുന്ന സാമീപ്യം ഒരൊറ്റ തവണ ചൊല്ലൽ കൊണ്ട് ലഭിക്കുന്ന സ്വലാത്ത്.</li>
+        <li>ഏറ്റവും ഉന്നതമായ നിധി എന്ന് ശൈഖ് ഇബ്'റാഹീം നിയാസെ (റ) തങ്ങൾ വിശേഷിപ്പിച്ച സ്വലാത്ത്.</li>
+        <li>അസ്മാഉൽ ഹുസ്നയുടെ സിർറുകൾ സ്വലാത്തുൽ ഫാതിഹിൽ അടങ്ങിയിരിക്കുന്നു.</li>
+        <li>തെറ്റുകളിൽ നിന്നുള്ള കവചമാണ് സ്വലാത്തുൽ ഫാതിഹ്.</li>
+        <li>മഅ്രിഫത്തിലേക്കുള്ള കവാടമാണ് മഹത്തായ സ്വലാത്തുൽ ഫാതിഹ്.</li>
+        <li>സ്വലാത്തുൽ ഫാതിഹിന്റെ അഹ്'ലുകാർക്ക് ഖബറിൽ ഒരു പ്രയാസവും നേരിടേണ്ടി വരില്ല (ഇ.അ).</li>
+        <li>രിസ്ഖിൽ വിശാലതയുണ്ടാകുവാൻ സ്വലാത്തുൽ ഫാതിഹ് പതിവാക്കുക.</li>
+      </ol>
+    </div>
+  </section>
+
+  <footer>Developed by <b>Sajid Tirur</b></footer>
+</div>
+
+<div class="modal" id="modal"><div class="box" id="box"></div></div>
+
+<script>
+(function(){
+  var KEY = "dikr_salatul_fatih_v1";
+  var MONTHS = ["ജനുവരി","ഫെബ്രുവരി","മാർച്ച്","ഏപ്രിൽ","മേയ്","ജൂൺ","ജൂലൈ","ഓഗസ്റ്റ്","സെപ്റ്റംബർ","ഒക്ടോബർ","നവംബർ","ഡിസംബർ"];
+  var PRESETS = [
+    {name:"സുബ്ഹാനല്ലാഹ്", arabic:"سُبْحَانَ اللّٰه", target:33},
+    {name:"അൽഹംദുലില്ലാഹ്", arabic:"الْحَمْدُ لِلّٰه", target:33},
+    {name:"അല്ലാഹു അക്ബർ", arabic:"اللّٰهُ أَكْبَر", target:34},
+    {name:"ലാ ഇലാഹ ഇല്ലല്ലാഹ്", arabic:"لَا إِلٰهَ إِلَّا اللّٰه", target:100},
+    {name:"അസ്തഗ്ഫിറുല്ലാഹ്", arabic:"أَسْتَغْفِرُ اللّٰه", target:100}
+  ];
+
+  var FATIH_AR = "اللَّهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ ❁ الْفَاتِحِ لِمَا أُغْلِقَ ❁\nوَالْخَاتِمِ لِمَا سَبَقَ ❁ نَاصِرِ الْحَقِّ بِالْحَقِّ ❁\nوَالْهَادِي إِلَى صِرَاطِكَ الْمُسْتَقِيمِ ❁\nوَعَلَى آلِهِ حَقَّ قَدْرِهِ وَمِقْدَارِهِ الْعَظِيمِ ❁";
+
+  function defaults(){
+    return {
+      active:"fatih",
+      dhikrs:[{id:"fatih", name:"സ്വലാത്തുൽ ഫാതിഹ്",
+        arabic:"اللَّهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ الْفَاتِحِ لِمَا أُغْلِقَ", target:100}],
+      log:{}
+    };
+  }
+  function load(){
+    try{
+      var s = JSON.parse(localStorage.getItem(KEY));
+      if(s && s.dhikrs && s.dhikrs.length) return s;
+    }catch(e){}
+    return defaults();
+  }
+  var state = load();
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+
+  function pad(n){ return (n<10?"0":"")+n; }
+  function dayKey(d){ d=d||new Date(); return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+  function fmt(n){ return Number(n).toLocaleString("en-IN"); }
+  function esc(s){ var d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
+
+  function stats(id){
+    var log = state.log[id] || {}, today = dayKey(), ym = today.slice(0,7), t=0, m=0, a=0;
+    for(var k in log){
+      var v = log[k]; a += v;
+      if(k.slice(0,7)===ym) m += v;
+      if(k===today) t = v;
+    }
+    return {today:t, month:m, all:a};
+  }
+  function current(){
+    for(var i=0;i<state.dhikrs.length;i++) if(state.dhikrs[i].id===state.active) return state.dhikrs[i];
+    state.active = state.dhikrs[0].id; return state.dhikrs[0];
+  }
+
+  function render(){
+    var cur = current();
+    var chips = document.getElementById("chips");
+    chips.innerHTML = state.dhikrs.map(function(d){
+      return '<button class="chip'+(d.id===cur.id?' on':'')+'" data-sel="'+d.id+'">'+esc(d.name)+'</button>';
+    }).join("") + '<button class="chip add" data-act="add">+ പുതിയ ദിക്ർ</button>';
+
+    var s = stats(cur.id), pct = cur.target>0 ? Math.min(100, s.today/cur.target*100) : 0;
+    var done = cur.target>0 && s.today>=cur.target;
+    document.getElementById("active").innerHTML =
+      '<p class="dname">'+esc(cur.name)+'</p>' +
+      ((cur.id==="fatih" ? FATIH_AR : cur.arabic) ? '<p class="ar dar">'+esc(cur.id==="fatih" ? FATIH_AR : cur.arabic)+'</p>' : '') +
+      '<button class="tap" id="tap" aria-label="എണ്ണം കൂട്ടുക"><span class="n">'+fmt(s.today)+'</span><span class="l">ഇന്ന് · തൊടുക</span></button>' +
+      '<div class="bar"><i style="width:'+pct+'%"></i></div>' +
+      '<div class="tline"><button class="tl" data-act="target">ലക്ഷ്യം (ദിവസം): '+(cur.target>0?fmt(cur.target):'—')+' ✎</button><span>'+(cur.target>0?Math.round(pct)+'%':'')+'</span></div>' +
+      '<p class="done">'+(done?'ഇന്നത്തെ ലക്ഷ്യം പൂർത്തിയായി, മാഷാ അല്ലാഹ്':'')+'</p>' +
+      '<div class="stats">' +
+        '<div class="stat"><b>'+fmt(s.today)+'</b><span>ഇന്ന്</span></div>' +
+        '<div class="stat"><b>'+fmt(s.month)+'</b><span>'+MONTHS[new Date().getMonth()]+' മാസം</span></div>' +
+        '<div class="stat"><b>'+fmt(s.all)+'</b><span>ഇതുവരെ ആകെ</span></div>' +
+      '</div>' +
+      '<div class="row">' +
+        '<button class="btn" data-act="undo">−1 തിരുത്തുക</button>' +
+        '<button class="btn" data-act="target">ലക്ഷ്യം മാറ്റുക</button>' +
+        '<button class="btn" data-act="reset">ഇന്നത്തേത് പൂജ്യമാക്കുക</button>' +
+        (state.dhikrs.length>1 ? '<button class="btn dng" data-act="del">ഈ ദിക്ർ നീക്കുക</button>' : '') +
+      '</div>';
+
+    document.getElementById("sumTitle").textContent = "എല്ലാ ദിക്റുകളും · "+MONTHS[new Date().getMonth()]+" "+new Date().getFullYear();
+    document.getElementById("sum").innerHTML =
+      '<tr><th>ദിക്ർ</th><th>ഇന്ന്</th><th>മാസം</th><th>ആകെ</th></tr>' +
+      state.dhikrs.map(function(d){
+        var x = stats(d.id);
+        return '<tr><td>'+esc(d.name)+'</td><td>'+fmt(x.today)+'</td><td>'+fmt(x.month)+'</td><td>'+fmt(x.all)+'</td></tr>';
+      }).join("");
+  }
+
+  function bump(delta){
+    var id = current().id, k = dayKey();
+    state.log[id] = state.log[id] || {};
+    var v = (state.log[id][k]||0) + delta;
+    if(v<0) v=0;
+    state.log[id][k] = v;
+    save();
+  }
+  function tap(){
+    bump(1);
+    try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){}
+    render();
+  }
+
+  /* modal helpers */
+  var modal = document.getElementById("modal"), box = document.getElementById("box");
+  function openModal(html){ box.innerHTML = html; modal.classList.add("on"); }
+  function closeModal(){ modal.classList.remove("on"); box.innerHTML=""; }
+  modal.addEventListener("click", function(e){ if(e.target===modal) closeModal(); });
+
+  function askConfirm(title, text, onYes){
+    openModal('<h3>'+esc(title)+'</h3><p>'+esc(text)+'</p><div class="row"><button class="btn" id="mNo">വേണ്ട</button><button class="btn pri" id="mYes">ശരി</button></div>');
+    document.getElementById("mNo").onclick = closeModal;
+    document.getElementById("mYes").onclick = function(){ closeModal(); onYes(); };
+  }
+  function askTarget(){
+    var cur = current();
+    openModal('<h3>ദിവസത്തെ ലക്ഷ്യം</h3><label>എണ്ണം (0 = ലക്ഷ്യം വേണ്ട)</label><input id="mT" type="number" min="0" inputmode="numeric" value="'+cur.target+'"><div class="presets" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"><button class="chip" data-v="33">33</button><button class="chip" data-v="100">100</button><button class="chip" data-v="313">313</button><button class="chip" data-v="500">500</button><button class="chip" data-v="1000">1000</button></div><div class="row"><button class="btn" id="mNo">റദ്ദാക്കുക</button><button class="btn pri" id="mYes">സേവ്</button></div>');
+    document.getElementById("mNo").onclick = closeModal;
+    document.getElementById("mYes").onclick = function(){
+      var v = parseInt(document.getElementById("mT").value,10);
+      cur.target = isNaN(v)||v<0 ? 0 : v; save(); closeModal(); render();
+    };
+  }
+  function askAdd(){
+    openModal('<h3>പുതിയ ദിക്ർ ചേർക്കുക</h3>' +
+      '<label>വേഗത്തിൽ ചേർക്കാൻ</label><div class="presets" id="pre">' +
+      PRESETS.map(function(p,i){ return '<button class="chip" data-p="'+i+'">'+esc(p.name)+'</button>'; }).join("") + '</div>' +
+      '<label>പേര്</label><input id="mN" type="text" placeholder="ദിക്റിന്റെ പേര്">' +
+      '<label>അറബി (ഓപ്ഷണൽ)</label><input id="mA" class="ar" type="text" dir="rtl">' +
+      '<label>ദിവസത്തെ ലക്ഷ്യം</label><input id="mT" type="number" min="0" inputmode="numeric" value="100">' +
+      '<div class="row"><button class="btn" id="mNo">റദ്ദാക്കുക</button><button class="btn pri" id="mYes">ചേർക്കുക</button></div>');
+    document.getElementById("pre").onclick = function(e){
+      var b = e.target.closest("[data-p]"); if(!b) return;
+      var p = PRESETS[+b.getAttribute("data-p")];
+      document.getElementById("mN").value = p.name;
+      document.getElementById("mA").value = p.arabic;
+      document.getElementById("mT").value = p.target;
+    };
+    document.getElementById("mNo").onclick = closeModal;
+    document.getElementById("mYes").onclick = function(){
+      var name = document.getElementById("mN").value.trim();
+      if(!name){ document.getElementById("mN").focus(); return; }
+      var t = parseInt(document.getElementById("mT").value,10);
+      var id = "d"+Date.now().toString(36);
+      state.dhikrs.push({id:id, name:name, arabic:document.getElementById("mA").value.trim(), target:isNaN(t)||t<0?0:t});
+      state.active = id; save(); closeModal(); render();
+    };
+  }
+
+  /* events */
+  document.addEventListener("click", function(e){
+    var t = e.target;
+    var tapBtn = t.closest("#tap");
+    if(tapBtn){ tap(); return; }
+    var sel = t.closest("[data-sel]");
+    if(sel){ state.active = sel.getAttribute("data-sel"); save(); render(); return; }
+    var tab = t.closest("[data-tab]");
+    if(tab){
+      document.querySelectorAll("nav button").forEach(function(b){ b.setAttribute("aria-selected", b===tab ? "true":"false"); });
+      document.querySelectorAll("section").forEach(function(s){ s.classList.toggle("on", s.id===tab.getAttribute("data-tab")); });
+      window.scrollTo(0,0); return;
+    }
+    var pv = t.closest("[data-v]");
+    if(pv){ document.getElementById("mT").value = pv.getAttribute("data-v"); return; }
+    var act = t.closest("[data-act]");
+    if(!act) return;
+    var a = act.getAttribute("data-act"), cur = current();
+    if(a==="add") askAdd();
+    else if(a==="undo"){ bump(-1); render(); }
+    else if(a==="target") askTarget();
+    else if(a==="reset") askConfirm("ഇന്നത്തെ എണ്ണം പൂജ്യമാക്കണോ?", "“"+cur.name+"” ഇന്നത്തെ എണ്ണം 0 ആകും. മാസത്തെയും ആകെയുള്ള കണക്കിൽ നിന്ന് അത്രയും കുറയും.", function(){
+      state.log[cur.id] = state.log[cur.id]||{}; state.log[cur.id][dayKey()] = 0; save(); render();
+    });
+    else if(a==="del") askConfirm("ഈ ദിക്ർ നീക്കണോ?", "“"+cur.name+"” അതിന്റെ എല്ലാ കണക്കുകളോടൊപ്പം നീക്കം ചെയ്യപ്പെടും.", function(){
+      state.dhikrs = state.dhikrs.filter(function(d){ return d.id!==cur.id; });
+      delete state.log[cur.id]; state.active = state.dhikrs[0].id; save(); render();
+    });
+  });
+
+  render();
+  if("serviceWorker" in navigator){ window.addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); }); }
+})();
+</script>
+</body>
+</html>
