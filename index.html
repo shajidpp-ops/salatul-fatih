@@ -6,6 +6,10 @@
 <meta name="theme-color" content="#1d6b4f">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ദിക്ർ കൗണ്ടർ">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>സ്വലാത്തുൽ ഫാതിഹ് കൗണ്ടർ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -84,6 +88,18 @@ footer b{color:var(--green)}
 .box .presets{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
 .box .presets .chip{font-size:12.5px;padding:5px 10px}
 .empty{text-align:center;color:var(--muted);padding:20px 0}
+#join[hidden]{display:none}
+#join input[type=text],#join input[type=email]{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font:inherit;background:var(--bg);color:var(--ink);margin-top:6px}
+#join label.cons{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;color:var(--muted);margin-top:10px}
+#join label.cons input{margin-top:4px}
+#join .msg{font-size:12.5px;color:var(--danger);margin:6px 0 0;min-height:18px}
+#join .st{font-size:12.5px;color:var(--muted)}
+#install[hidden]{display:none}
+#install{border-color:var(--gold);background:var(--soft)}
+#install b{display:block;margin-bottom:4px}
+#install p{margin:4px 0;font-size:13.5px}
+#install ol{margin:6px 0 4px;padding-left:20px;font-size:13.5px}
+#install .row{margin-top:8px}
 </style>
 </head>
 <body>
@@ -93,6 +109,8 @@ footer b{color:var(--green)}
     <h1>സ്വലാത്തുൽ ഫാതിഹ്</h1>
     <p>ദിക്ർ കൗണ്ടർ · പരസ്യമില്ല · സൈൻ ഇൻ വേണ്ട</p>
   </header>
+
+  <div class="card" id="install" hidden></div>
 
   <nav role="tablist">
     <button role="tab" data-tab="count" aria-selected="true">കൗണ്ടർ</button>
@@ -104,6 +122,7 @@ footer b{color:var(--green)}
   <section id="count" class="on">
     <div class="chips" id="chips"></div>
     <div class="card" id="active"></div>
+    <div class="card" id="join" hidden></div>
     <div class="card">
       <h2 id="sumTitle">സംഗ്രഹം</h2>
       <table id="sum"></table>
@@ -165,6 +184,8 @@ footer b{color:var(--green)}
 <script>
 (function(){
   var KEY = "dikr_salatul_fatih_v1";
+  /* ===== റിപ്പോർട്ട് സംവിധാനത്തിനുള്ള Google Apps Script വെബ് ആപ്പ് URL ഇവിടെ ഒട്ടിക്കുക. ഒഴിച്ചിട്ടാൽ "ഗ്രൂപ്പിൽ ചേരുക" ഭാഗം കാണിക്കില്ല. ===== */
+  var SYNC_URL = "";
   var MONTHS = ["ജനുവരി","ഫെബ്രുവരി","മാർച്ച്","ഏപ്രിൽ","മേയ്","ജൂൺ","ജൂലൈ","ഓഗസ്റ്റ്","സെപ്റ്റംബർ","ഒക്ടോബർ","നവംബർ","ഡിസംബർ"];
   var PRESETS = [
     {name:"സുബ്ഹാനല്ലാഹ്", arabic:"سُبْحَانَ اللّٰه", target:33},
@@ -256,7 +277,9 @@ footer b{color:var(--green)}
     var v = (state.log[id][k]||0) + delta;
     if(v<0) v=0;
     state.log[id][k] = v;
+    markDirty(id,k);
     save();
+    scheduleSync();
   }
   function tap(){
     bump(1);
@@ -332,13 +355,155 @@ footer b{color:var(--green)}
     else if(a==="undo"){ bump(-1); render(); }
     else if(a==="target") askTarget();
     else if(a==="reset") askConfirm("ഇന്നത്തെ എണ്ണം പൂജ്യമാക്കണോ?", "“"+cur.name+"” ഇന്നത്തെ എണ്ണം 0 ആകും. മാസത്തെയും ആകെയുള്ള കണക്കിൽ നിന്ന് അത്രയും കുറയും.", function(){
-      state.log[cur.id] = state.log[cur.id]||{}; state.log[cur.id][dayKey()] = 0; save(); render();
+      state.log[cur.id] = state.log[cur.id]||{}; state.log[cur.id][dayKey()] = 0; markDirty(cur.id,dayKey()); save(); scheduleSync(); render();
     });
     else if(a==="del") askConfirm("ഈ ദിക്ർ നീക്കണോ?", "“"+cur.name+"” അതിന്റെ എല്ലാ കണക്കുകളോടൊപ്പം നീക്കം ചെയ്യപ്പെടും.", function(){
       state.dhikrs = state.dhikrs.filter(function(d){ return d.id!==cur.id; });
       delete state.log[cur.id]; state.active = state.dhikrs[0].id; save(); render();
     });
   });
+
+  /* ---------- ഗ്രൂപ്പ് / റിപ്പോർട്ട് സമന്വയം ---------- */
+  state.dirty = state.dirty || {};
+  var syncTimer = null, syncing = false, lastSyncMsg = "";
+  function markDirty(id,date){ if(state.member){ state.dirty[id+"|"+date] = 1; } }
+  function dhikrName(id){ for(var i=0;i<state.dhikrs.length;i++) if(state.dhikrs[i].id===id) return state.dhikrs[i].name; return null; }
+  function postJSON(payload){
+    var body = JSON.stringify(payload);
+    return fetch(SYNC_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:body})
+      .then(function(r){ return r.json().then(function(j){ return !!(j && j.ok); }); })
+      .catch(function(){
+        return fetch(SYNC_URL,{method:"POST",mode:"no-cors",body:body}).then(function(){ return true; }).catch(function(){ return false; });
+      });
+  }
+  function scheduleSync(){
+    if(!SYNC_URL || !state.member) return;
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(syncNow, 4000);
+  }
+  function syncNow(){
+    if(!SYNC_URL || !state.member || syncing) return Promise.resolve();
+    var keys = Object.keys(state.dirty);
+    if(!keys.length) return Promise.resolve();
+    var items = [], sent = [];
+    keys.forEach(function(key){
+      var parts = key.split("|"), id = parts[0], date = parts[1], nm = dhikrName(id);
+      if(!nm){ delete state.dirty[key]; return; }
+      items.push({date:date, dhikr:nm, count:(state.log[id]&&state.log[id][date])||0});
+      sent.push(key);
+    });
+    if(!items.length){ save(); return Promise.resolve(); }
+    syncing = true;
+    return postJSON({type:"counts", name:state.member.name, email:state.member.email, items:items}).then(function(ok){
+      syncing = false;
+      if(ok){
+        sent.forEach(function(k){ delete state.dirty[k]; });
+        lastSyncMsg = "സമന്വയിപ്പിച്ചു ✓";
+      } else { lastSyncMsg = "ഇന്റർനെറ്റ് ഇല്ല, പിന്നീട് അയക്കും"; }
+      save(); updateJoinStatus();
+    });
+  }
+  function updateJoinStatus(){
+    var el = document.getElementById("joinStatus"); if(!el) return;
+    var pending = Object.keys(state.dirty).length;
+    el.textContent = (lastSyncMsg ? lastSyncMsg+" · " : "") + (pending ? pending+" എണ്ണം അയക്കാൻ ബാക്കി" : "എല്ലാം അയച്ചു");
+  }
+  function renderJoin(){
+    var el = document.getElementById("join");
+    if(!SYNC_URL){ el.hidden = true; return; }
+    el.hidden = false;
+    if(state.member){
+      el.innerHTML = '<b>ഗ്രൂപ്പിൽ ചേർന്നിരിക്കുന്നു</b><p class="st">'+esc(state.member.name)+' · '+esc(state.member.email)+'</p>' +
+        '<p class="st" id="joinStatus"></p>' +
+        '<div class="row"><button class="btn" data-join="now">ഇപ്പോൾ അയക്കുക</button><button class="btn dng" data-join="leave">ഗ്രൂപ്പിൽ നിന്ന് പുറത്തുപോകുക</button></div>';
+      updateJoinStatus();
+    } else {
+      el.innerHTML = '<b>ഗ്രൂപ്പിൽ ചേരുക (ഓപ്ഷണൽ)</b>' +
+        '<p class="st">ചേർന്നാൽ നിങ്ങൾ ചൊല്ലുന്ന എണ്ണം അഡ്മിന് റിപ്പോർട്ടിനായി ലഭിക്കും. ചേരാതെയും ആപ്പ് ഉപയോഗിക്കാം.</p>' +
+        '<input id="jN" type="text" placeholder="നിങ്ങളുടെ പേര്" autocomplete="name">' +
+        '<input id="jE" type="email" placeholder="ഇമെയിൽ" autocomplete="email" inputmode="email">' +
+        '<label class="cons"><input id="jC" type="checkbox"><span>എന്റെ പേര്, ഇമെയിൽ, ചൊല്ലിയ എണ്ണം (ഓരോ ദിവസത്തെയും) എന്നിവ ഗ്രൂപ്പ് അഡ്മിന് കാണാനും റിപ്പോർട്ടിൽ ഉൾപ്പെടുത്താനും ഞാൻ സമ്മതിക്കുന്നു.</span></label>' +
+        '<p class="msg" id="jM"></p>' +
+        '<div class="row"><button class="btn pri" data-join="go">ചേരുക</button></div>';
+    }
+  }
+  document.getElementById("join").addEventListener("click", function(e){
+    var b = e.target.closest("[data-join]"); if(!b) return;
+    var a = b.getAttribute("data-join");
+    if(a==="go"){
+      var n = document.getElementById("jN").value.trim(), m = document.getElementById("jE").value.trim().toLowerCase();
+      var msg = document.getElementById("jM");
+      if(!n){ msg.textContent = "പേര് നൽകുക"; return; }
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(m)){ msg.textContent = "ശരിയായ ഇമെയിൽ നൽകുക"; return; }
+      if(!document.getElementById("jC").checked){ msg.textContent = "സമ്മതം ടിക്ക് ചെയ്യുക"; return; }
+      msg.style.color = "var(--muted)"; msg.textContent = "ചേർക്കുന്നു...";
+      postJSON({type:"join", name:n, email:m}).then(function(ok){
+        if(!ok){ msg.style.color = "var(--danger)"; msg.textContent = "ഇപ്പോൾ ചേർക്കാൻ പറ്റിയില്ല. ഇന്റർനെറ്റ് നോക്കി വീണ്ടും ശ്രമിക്കുക."; return; }
+        state.member = {name:n, email:m};
+        state.dirty = {};
+        for(var id in state.log){ for(var d in state.log[id]){ state.dirty[id+"|"+d] = 1; } }
+        save(); renderJoin(); syncNow();
+      });
+    } else if(a==="now"){
+      lastSyncMsg = "അയക്കുന്നു..."; updateJoinStatus(); syncNow();
+    } else if(a==="leave"){
+      askConfirm("ഗ്രൂപ്പിൽ നിന്ന് പുറത്തുപോകണോ?", "ഇനി നിങ്ങളുടെ എണ്ണം അയക്കില്ല. ഇതുവരെ അയച്ചത് അഡ്മിന്റെ റിപ്പോർട്ടിൽ ഉണ്ടാകും; നീക്കം ചെയ്യാൻ അഡ്മിനോട് ആവശ്യപ്പെടുക.", function(){
+        state.member = null; state.dirty = {}; save(); renderJoin();
+      });
+    }
+  });
+  window.addEventListener("online", function(){ syncNow(); });
+  document.addEventListener("visibilitychange", function(){ if(document.visibilityState==="hidden") syncNow(); });
+  renderJoin();
+  setTimeout(syncNow, 1500);
+
+  /* install helper (Android + iPhone) */
+  var deferredPrompt = null, instDismissed = false;
+  try{ instDismissed = localStorage.getItem("dikr_inst_hide")==="1"; }catch(e){}
+  function isStandalone(){
+    try{ if(window.matchMedia("(display-mode: standalone)").matches) return true; }catch(e){}
+    return window.navigator.standalone === true;
+  }
+  function isIOS(){
+    var ua = navigator.userAgent || "";
+    return /iPad|iPhone|iPod/.test(ua) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
+  }
+  function isAndroid(){ return /Android/i.test(navigator.userAgent||""); }
+  function renderInstall(){
+    var el = document.getElementById("install"), h = "";
+    if(isStandalone() || instDismissed){ el.hidden = true; return; }
+    if(deferredPrompt){
+      h = '<b>ഫോണിൽ ആപ്പായി ഇൻസ്റ്റാൾ ചെയ്യുക</b><p>ഹോം സ്ക്രീനിൽ ഐക്കണായി വരും, ആപ്പ് പോലെ തുറക്കും.</p>' +
+          '<div class="row"><button class="btn pri" data-inst="go">ഇൻസ്റ്റാൾ ചെയ്യുക</button><button class="btn" data-inst="hide">പിന്നീട്</button></div>';
+    } else if(isIOS()){
+      h = '<b>iPhone-ൽ ആപ്പായി ചേർക്കാൻ</b><ol>' +
+          '<li><b style="display:inline">Safari</b> ബ്രൗസറിൽ ഈ പേജ് തുറക്കുക (മറ്റ് ബ്രൗസറിൽ ആണെങ്കിൽ ലിങ്ക് കോപ്പി ചെയ്ത് Safari-യിൽ തുറക്കുക).</li>' +
+          '<li>താഴെ (iPad-ൽ മുകളിൽ) <b style="display:inline">Share</b> ബട്ടൺ അമർത്തുക (ചതുരത്തിൽ നിന്ന് മുകളിലേക്ക് അമ്പ്).</li>' +
+          '<li>താഴേക്ക് നീക്കി <b style="display:inline">Add to Home Screen</b> അമർത്തി <b style="display:inline">Add</b> അമർത്തുക.</li></ol>' +
+          '<div class="row"><button class="btn" data-inst="hide">മനസ്സിലായി, മറയ്ക്കുക</button></div>';
+    } else if(isAndroid()){
+      h = '<b>Android-ൽ ആപ്പായി ഇൻസ്റ്റാൾ ചെയ്യാൻ</b><ol>' +
+          '<li><b style="display:inline">Chrome</b>-ൽ ഈ പേജ് തുറക്കുക.</li>' +
+          '<li>മുകളിൽ വലതുവശത്തെ മെനു <b style="display:inline">(⋮)</b> അമർത്തുക.</li>' +
+          '<li><b style="display:inline">Install app</b> (ചിലതിൽ Add to Home screen) അമർത്തുക.</li></ol>' +
+          '<div class="row"><button class="btn" data-inst="hide">മനസ്സിലായി, മറയ്ക്കുക</button></div>';
+    } else { el.hidden = true; return; }
+    el.innerHTML = h; el.hidden = false;
+  }
+  window.addEventListener("beforeinstallprompt", function(e){ e.preventDefault(); deferredPrompt = e; renderInstall(); });
+  window.addEventListener("appinstalled", function(){ deferredPrompt = null; renderInstall(); });
+  document.getElementById("install").addEventListener("click", function(e){
+    var b = e.target.closest("[data-inst]"); if(!b) return;
+    if(b.getAttribute("data-inst")==="go" && deferredPrompt){
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then(function(){ deferredPrompt = null; renderInstall(); }).catch(function(){});
+    } else if(b.getAttribute("data-inst")==="hide"){
+      instDismissed = true;
+      try{ localStorage.setItem("dikr_inst_hide","1"); }catch(err){}
+      renderInstall();
+    }
+  });
+  renderInstall();
 
   render();
   if("serviceWorker" in navigator){ window.addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); }); }
