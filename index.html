@@ -8,9 +8,9 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="ദിക്ർ കൗണ്ടർ">
+<meta name="apple-mobile-web-app-title" content="Salathul Fathih">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>സ്വലാത്തുൽ ഫാതിഹ് കൗണ്ടർ</title>
+<title>Salathul Fathih Counter · സ്വലാത്തുൽ ഫാതിഹ്</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Sans+Malayalam:wght@400;500;700&display=swap" rel="stylesheet">
@@ -30,6 +30,7 @@ header{text-align:center;padding:10px 0 6px}
 .ar{font-family:"Amiri",serif;direction:rtl}
 header .ar{font-size:30px;color:var(--green);margin:0}
 header h1{font-size:19px;margin:2px 0 0;font-weight:700}
+header .en{font-size:16px;font-weight:700;color:var(--green);letter-spacing:.3px;margin-top:1px}
 header p{margin:2px 0 0;color:var(--muted);font-size:13px}
 nav{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:5px;margin:14px 0}
 nav button{flex:1;border:0;background:transparent;color:var(--muted);padding:9px 4px;border-radius:10px;font:inherit;font-size:13.5px;font-weight:500;cursor:pointer}
@@ -100,6 +101,26 @@ footer b{color:var(--green)}
 #install p{margin:4px 0;font-size:13.5px}
 #install ol{margin:6px 0 4px;padding-left:20px;font-size:13.5px}
 #install .row{margin-top:8px}
+
+#opts h2{font-size:15px;margin:0 0 6px}
+.opt{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.opt:first-of-type{border-top:0}
+.opt input[type=checkbox]{width:22px;height:22px;margin-top:3px;flex:none}
+.opt label{font-size:14.5px;font-weight:700;display:block}
+.opt small{display:block;color:var(--muted);font-size:12.5px;font-weight:400}
+.vst{display:flex;align-items:center;gap:8px;font-size:13px;margin:6px 0}
+.vdot{width:12px;height:12px;border-radius:50%;background:var(--line);flex:none}
+.vdot.live{background:#c0392b;box-shadow:0 0 0 4px rgba(192,57,43,.18)}
+.vdot.hear{background:var(--green);box-shadow:0 0 0 5px var(--soft)}
+.vmeter{height:10px;background:var(--soft);border-radius:6px;position:relative;overflow:hidden;margin:4px 0}
+.vmeter i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--green)}
+.vmeter b{position:absolute;top:0;bottom:0;width:2px;background:var(--gold)}
+#opts details{margin-top:6px;font-size:13px}
+#opts summary{cursor:pointer;color:var(--muted)}
+#opts .sl{display:block;margin-top:8px}
+#opts .sl span{float:right;color:var(--green);font-weight:700}
+#opts input[type=range]{width:100%}
+#opts .wm{color:var(--danger);font-size:12.5px;margin:4px 0 0;min-height:16px}
 </style>
 </head>
 <body>
@@ -107,6 +128,7 @@ footer b{color:var(--green)}
   <header>
     <p class="ar">اللَّهُمَّ صَلِّ عَلَى سَيِّدِنَا مُحَمَّدٍ</p>
     <h1>സ്വലാത്തുൽ ഫാതിഹ്</h1>
+    <div class="en">Salathul Fathih Counter</div>
     <p>ദിക്ർ കൗണ്ടർ · പരസ്യമില്ല · സൈൻ ഇൻ വേണ്ട</p>
   </header>
 
@@ -122,6 +144,22 @@ footer b{color:var(--green)}
   <section id="count" class="on">
     <div class="chips" id="chips"></div>
     <div class="card" id="active"></div>
+    <div class="card" id="opts">
+      <h2>ഓപ്ഷനുകൾ</h2>
+      <div class="opt"><input type="checkbox" id="oVoice"><div><label for="oVoice">ശബ്ദം കേട്ട് എണ്ണുക</label><small>ഓൺ ആക്കിയാൽ മാത്രം മൈക്ക് ഉപയോഗിക്കും. ആപ്പ് സ്ക്രീനിൽ തുറന്നിരിക്കുമ്പോൾ മാത്രം. ശബ്ദം ഫോണിൽ തന്നെ പരിശോധിക്കും, റെക്കോർഡ് ചെയ്യുകയോ അയക്കുകയോ ഇല്ല. ബട്ടൺ അമർത്തിയും −1 ഉം പഴയത് പോലെ ഉപയോഗിക്കാം.</small></div></div>
+      <div id="vPanel" hidden>
+        <div class="vst"><span class="vdot" id="vDot"></span><span id="vTxt"></span></div>
+        <div class="vmeter"><i id="vLvl"></i><b id="vThrM"></b></div>
+        <details><summary>സംവേദനക്ഷമത ക്രമീകരിക്കുക</summary>
+          <button class="btn" id="vCal" style="margin-top:8px">പശ്ചാത്തല ശബ്ദം അളക്കുക (2 സെക്കൻഡ് മിണ്ടാതിരിക്കുക)</button>
+          <label class="sl">ഇതിന് മുകളിലുള്ള ശബ്ദം മാത്രം എണ്ണും <span id="vThrV"></span></label><input type="range" id="vThr" min="-75" max="-15" step="1">
+          <label class="sl">ഇത്രയും ഇടവേള വന്നാൽ ഒരു തവണ കഴിഞ്ഞു <span id="vGapV"></span></label><input type="range" id="vGap" min="300" max="4000" step="100">
+          <label class="sl">ഇതിലും ചെറിയ ശബ്ദം എണ്ണില്ല <span id="vMinV"></span></label><input type="range" id="vMin" min="200" max="5000" step="100">
+        </details>
+      </div>
+      <div class="opt"><input type="checkbox" id="oWake"><div><label for="oWake">സ്ക്രീൻ ഓഫ് ആകാതെ നിർത്തുക</label><small>ആപ്പ് തുറന്നിരിക്കുമ്പോൾ ഫോൺ താനേ ലോക്ക് ആകില്ല. ബാറ്ററി കൂടുതൽ ചെലവാകും, ചാർജിൽ വെക്കുന്നത് നല്ലത്.</small></div></div>
+      <p class="wm" id="oMsg"></p>
+    </div>
     <div class="card" id="join" hidden></div>
     <div class="card">
       <h2 id="sumTitle">സംഗ്രഹം</h2>
@@ -281,7 +319,9 @@ footer b{color:var(--green)}
     save();
     scheduleSync();
   }
+  var lastTapT = 0;
   function tap(){
+    lastTapT = Date.now();
     bump(1);
     try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){}
     render();
@@ -504,6 +544,130 @@ footer b{color:var(--green)}
     }
   });
   renderInstall();
+
+  /* ===== ഓപ്ഷനുകൾ: ശബ്ദം കേട്ട് എണ്ണൽ, സ്ക്രീൻ ഓഫ് ആകാതെ നിർത്തൽ ===== */
+  (function(){
+    var OK = "dikr_opts_v1";
+    var O = {voice:false, wake:false, thr:-45, gap:1200, min:800};
+    try{ var sv = JSON.parse(localStorage.getItem(OK)); if(sv) for(var k in sv) O[k]=sv[k]; }catch(e){}
+    function saveO(){ try{ localStorage.setItem(OK, JSON.stringify(O)); }catch(e){} }
+    function $(id){ return document.getElementById(id); }
+    var ctx=null, stream=null, analyser=null, timer=null, buf=null, wake=null;
+    var calibrating=false, calibVals=[], inSpeech=false, startT=0, lastVoiceT=0, starting=false;
+
+    function pct(db){ return Math.max(0, Math.min(100, (db+80)/65*100)); }
+    function msg(t){ $("oMsg").textContent = t||""; }
+    function paintSliders(){
+      $("vThr").value=O.thr; $("vGap").value=O.gap; $("vMin").value=O.min;
+      $("vThrV").textContent=O.thr+" dB"; $("vGapV").textContent=(O.gap/1000).toFixed(1)+" സെ"; $("vMinV").textContent=(O.min/1000).toFixed(1)+" സെ";
+      $("vThrM").style.left=pct(O.thr)+"%";
+    }
+    function setStatus(live, hear, txt){
+      $("vDot").className="vdot"+(hear?" hear":(live?" live":""));
+      $("vTxt").textContent=txt;
+    }
+    $("oVoice").checked=O.voice; $("oWake").checked=O.wake;
+    $("vPanel").hidden=!O.voice; paintSliders();
+
+    function tick(){
+      if(!analyser) return;
+      analyser.getFloatTimeDomainData(buf);
+      var sum=0; for(var i=0;i<buf.length;i++) sum+=buf[i]*buf[i];
+      var db=20*Math.log10(Math.sqrt(sum/buf.length)+1e-9), now=performance.now();
+      $("vLvl").style.width=pct(db)+"%";
+      if(calibrating){ calibVals.push(db); return; }
+      var loud = db > O.thr;
+      if(loud){ lastVoiceT=now; if(!inSpeech){ inSpeech=true; startT=now; } }
+      setStatus(true, loud, loud ? "ശബ്ദം കേൾക്കുന്നു" : (inSpeech ? "ഇടവേള..." : "കേൾക്കുന്നു (മൈക്ക് ഓൺ)"));
+      if(inSpeech && now-lastVoiceT > O.gap){
+        var dur=lastVoiceT-startT; inSpeech=false;
+        /* ബട്ടൺ അമർത്തിയതിന് തൊട്ടടുത്ത് ശബ്ദം രണ്ടാമത് എണ്ണില്ല */
+        var recentTap = (Date.now()-lastTapT) < 3000 + O.gap;
+        if(dur>=O.min && !recentTap){
+          bump(1);
+          try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){}
+          render();
+        }
+      }
+    }
+
+    async function startMic(){
+      if(starting || stream) return; starting=true; msg("");
+      if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+        msg("ഈ ബ്രൗസറിൽ മൈക്ക് ലഭ്യമല്ല. Chrome (Android) അല്ലെങ്കിൽ Safari (iPhone) ഉപയോഗിക്കുക."); O.voice=false; saveO(); $("oVoice").checked=false; $("vPanel").hidden=true; starting=false; return;
+      }
+      try{
+        stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:true,autoGainControl:true}});
+      }catch(e){
+        stream=null; starting=false;
+        msg((e && e.name==="NotAllowedError") ? "മൈക്ക് അനുമതി ലഭിച്ചില്ല. ബ്രൗസറിൽ മൈക്ക് അനുവദിച്ച ശേഷം വീണ്ടും ഓൺ ചെയ്യുക." : "മൈക്ക് തുറക്കാൻ പറ്റിയില്ല.");
+        O.voice=false; saveO(); $("oVoice").checked=false; $("vPanel").hidden=true; setStatus(false,false,""); return;
+      }
+      if(!O.voice || document.visibilityState!=="visible"){ stopMic(); starting=false; return; }
+      var AC=window.AudioContext||window.webkitAudioContext; ctx=new AC();
+      try{ if(ctx.state==="suspended") await ctx.resume(); }catch(e){}
+      var src=ctx.createMediaStreamSource(stream); analyser=ctx.createAnalyser(); analyser.fftSize=2048;
+      buf=new Float32Array(analyser.fftSize); src.connect(analyser);
+      inSpeech=false; timer=setInterval(tick,50); starting=false;
+      setStatus(true,false,"കേൾക്കുന്നു (മൈക്ക് ഓൺ)");
+    }
+    function stopMic(){
+      clearInterval(timer); timer=null; inSpeech=false;
+      if(stream) stream.getTracks().forEach(function(t){ t.stop(); }); stream=null;
+      if(ctx){ try{ ctx.close(); }catch(e){} } ctx=null; analyser=null;
+      $("vLvl").style.width="0";
+      setStatus(false,false, O.voice ? "ആപ്പ് സ്ക്രീനിൽ ഇല്ലാത്തതിനാൽ കേൾക്കുന്നില്ല" : "");
+    }
+
+    async function getWake(){
+      if(wake) return;
+      try{
+        if("wakeLock" in navigator){
+          wake = await navigator.wakeLock.request("screen");
+          wake.addEventListener("release", function(){ wake=null; });
+          msg("");
+        } else { msg("ഈ ഫോണിൽ സ്ക്രീൻ ഓഫ് ആകാതെ നിർത്താൻ പറ്റില്ല."); }
+      }catch(e){ wake=null; msg("സ്ക്രീൻ ഓഫ് ആകാതെ നിർത്താൻ പറ്റിയില്ല (ബാറ്ററി സേവർ ഓൺ ആയിരിക്കാം)."); }
+    }
+    function dropWake(){ if(wake){ try{ wake.release(); }catch(e){} wake=null; } }
+
+    $("oVoice").onchange=function(){
+      O.voice=this.checked; saveO(); $("vPanel").hidden=!O.voice;
+      if(O.voice){ startMic(); } else { stopMic(); setStatus(false,false,""); }
+    };
+    $("oWake").onchange=function(){
+      O.wake=this.checked; saveO();
+      if(O.wake) getWake(); else { dropWake(); msg(""); }
+    };
+    $("vThr").oninput=function(){ O.thr=+this.value; saveO(); paintSliders(); };
+    $("vGap").oninput=function(){ O.gap=+this.value; saveO(); paintSliders(); };
+    $("vMin").oninput=function(){ O.min=+this.value; saveO(); paintSliders(); };
+    $("vCal").onclick=function(){
+      if(!analyser||calibrating) return;
+      calibrating=true; calibVals=[]; msg("2 സെക്കൻഡ് മിണ്ടാതിരിക്കുക...");
+      setTimeout(function(){
+        calibrating=false;
+        if(calibVals.length){
+          calibVals.sort(function(a,b){return a-b;});
+          var p90=calibVals[Math.floor(calibVals.length*0.9)];
+          O.thr=Math.max(-75, Math.min(-15, Math.round(p90+10))); saveO(); paintSliders();
+          msg("പശ്ചാത്തല ശബ്ദം "+Math.round(p90)+" dB. സംവേദനക്ഷമത "+O.thr+" dB ആയി സെറ്റ് ചെയ്തു.");
+        } else msg("");
+      },2000);
+    };
+
+    document.addEventListener("visibilitychange", function(){
+      if(document.visibilityState==="visible"){
+        if(O.wake) getWake();
+        if(O.voice) startMic();
+      } else {
+        stopMic();   /* ആപ്പ് സ്ക്രീനിൽ ഇല്ലെങ്കിൽ മൈക്ക് നിർത്തും */
+        wake=null;   /* ബ്രൗസർ തന്നെ വിടും */
+      }
+    });
+    if(O.wake) getWake();
+    if(O.voice) startMic();
+  })();
 
   render();
   if("serviceWorker" in navigator){ window.addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); }); }

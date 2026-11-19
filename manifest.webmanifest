@@ -1,6 +1,6 @@
 {
-  "name": "സ്വലാത്തുൽ ഫാതിഹ് കൗണ്ടർ",
-  "short_name": "ദിക്ർ കൗണ്ടർ",
+  "name": "Salathul Fathih Counter",
+  "short_name": "Salathul Fathih",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
